@@ -29,9 +29,20 @@ public class CalculateDataUseCase {
 
         Calculator calculator = calculatorFactory.getCalculator();
 
-        Map<String, Double> calculations = calculator.calculate(groupedByAttribute.get(dataPoints.get(0).id()));
+        groupedByAttribute.forEach((attribute, values) -> {
+            Map<String, Double> calculations = calculator.calculate(values);
+            result.add(new DataPointCalculation(
+                    attribute,
+                    calculations
+                            .entrySet()
+                            .stream()
+                            .map(element -> new DataPointCalculation.CalculationValue(element.getKey(), element.getValue()))
+                            .toList()
+                    )
+            );
 
-        result.add(new DataPointCalculation(dataPoints.get(0).id(), calculations.entrySet().stream().map(element -> new DataPointCalculation.CalculationValue(element.getKey(), element.getValue())).toList()));
+        });
+
 
         return result;
     }
