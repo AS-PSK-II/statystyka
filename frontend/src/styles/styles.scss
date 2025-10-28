@@ -1,0 +1,29 @@
+.appbar{
+  background: linear-gradient(90deg, #111827, #0f172a);
+  color: #fff; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.bg{
+  min-height: 100vh;
+  background:
+          radial-gradient(1000px 500px at 10% -10%, rgba(99,102,241,.18), transparent),
+          radial-gradient(800px 400px at 90% 0%, rgba(20,184,166,.16), transparent),
+          linear-gradient(180deg, #0b1020, #0a0f1d);
+}
+
+.page-title{ font-weight:700; letter-spacing:.2px; }
+
+.kpi-card{
+  border-radius: 18px; padding: 18px;
+  background: linear-gradient(180deg, rgba(99,102,241,.12), rgba(99,102,241,.06));
+  border: 1px solid rgba(99,102,241,.25);
+}
+
+.chart-card{
+  height: 480px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+
+.chart-wrap{ height: 400px; padding: 8px 16px 16px; }
