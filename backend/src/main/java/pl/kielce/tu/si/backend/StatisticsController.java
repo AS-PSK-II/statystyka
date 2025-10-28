@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.kielce.tu.si.backend.data.ExcelDataExtractor;
+import pl.kielce.tu.si.backend.services.CalculateDataUseCase;
 import pl.kielce.tu.si.backend.services.GetRawDataUseCase;
 
 import java.io.IOException;
@@ -19,6 +20,7 @@ public class StatisticsController {
 
     private final ExcelDataExtractor excelDataExtractor;
     private final GetRawDataUseCase getRawDataUseCase;
+    private final CalculateDataUseCase calculateDataUseCase;
 
     @PostMapping
     public void uploadFile(@RequestPart MultipartFile file) throws IOException {
@@ -27,8 +29,8 @@ public class StatisticsController {
     }
 
     @GetMapping
-    public String getStatistics() {
-        return "Statistics";
+    public ResponseEntity<List<DataPointCalculation>> getStatistics() {
+        return ResponseEntity.ok(calculateDataUseCase.calculateData());
     }
 
     @GetMapping("/raw")

@@ -22,6 +22,8 @@ public class GetRawDataUseCase {
     public List<RawDataPoint> getRawData() {
         List<DataPoint> dataPoints = dataPointRepository.getAllDataPoints();
 
+        log.info("Mapping data for {} rows", dataPoints.size());
+
         return processDataPoints(dataPoints)
                 .entrySet()
                 .stream()
