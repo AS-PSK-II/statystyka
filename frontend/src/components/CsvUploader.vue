@@ -27,7 +27,7 @@
         />
       </v-col>
       <v-col cols="12" md="3" class="d-flex align-end">
-        <v-btn block variant="tonal" color="secondary" rounded="lg">
+        <v-btn block variant="tonal" color="secondary" rounded="lg" @click="$emit('clearView')">
           <v-icon start>mdi-broom</v-icon>Wyczyść
         </v-btn>
       </v-col>

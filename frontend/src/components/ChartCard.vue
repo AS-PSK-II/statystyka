@@ -10,7 +10,7 @@
     </v-toolbar>
     <v-divider />
     <div class="chart-wrap">
-      <component :is="componentType" ref="chartRef" :data="chartData" :options="computedOptions" />
+      <component :is="componentType" ref="chartRef" :chartData="chartData" :options="computedOptions" />
     </div>
   </v-card>
 </template>

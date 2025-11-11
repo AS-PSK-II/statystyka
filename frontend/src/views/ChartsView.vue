@@ -1,10 +1,9 @@
 <template>
   <v-container>
-    <div class="display-1 mb-6 page-title">Wykresy ruchu pasażerskiego</div>
 
-    <CsvUploader @uploaded="loadSample" />
+    <CsvUploader @uploaded="loadSample" @clearView="clearView"/>
 
-    <v-row class="mb-6" v-if="kpis.length">
+    <v-row class="mb-6 mt-3" v-if="kpis.length">
       <v-col cols="12" md="4" v-for="(k, i) in kpis" :key="i">
         <v-card class="kpi-card" elevation="0">
           <div class="text-caption text-medium-emphasis">{{ k.label }}</div>
@@ -43,6 +42,7 @@
             :title="'Trend: kwartalne wartości'"
             :type="chartKind"
             :chartData="timeChart"
+            :key="refreshChartKey"
             :options="{ animation: { duration: 700 } }"
         />
       </v-col>
@@ -57,7 +57,7 @@
     </v-row>
 
     <v-alert v-else type="info" variant="tonal" class="mt-6">
-      Kliknij „Załaduj próbkę”, aby wczytać dane demonstracyjne.
+      Załaduj plik CSV aby wyświetlić widok z danymi
     </v-alert>
   </v-container>
 </template>
@@ -65,6 +65,7 @@
 <script>
 import CsvUploader from '@/components/CsvUploader.vue'
 import ChartCard from '@/components/ChartCard.vue'
+import api from "@/utils/api.js";
 
 const SAMPLE = [
   {
@@ -98,6 +99,7 @@ export default {
       airports: [],
       activeAirports: [],
       chartKind: 'line',
+      refreshChartKey: 0,
       palette: ['#6366F1','#22C1C3','#EF4444','#F59E0B','#10B981','#8B5CF6','#3B82F6','#EC4899','#14B8A6','#84CC16']
     }
   },
@@ -150,6 +152,14 @@ export default {
       }
     }
   },
+  watch: {
+    timeChart: {
+      handler: function(newValue) {
+        this.refreshChartKey++
+      },
+      deep: true
+    }
+  },
   methods: {
     loadSample () {
       // „na sztywno”
@@ -157,6 +167,25 @@ export default {
       this.airports = Array.from(new Set(SAMPLE.flatMap(s => s.dataPoints.map(d => d.id))))
       this.activeAirports = this.airports.slice(0, 3)
     },
+    clearView () {
+      this.series = []
+      this.airports = []
+      this.activeAirports = []
+    },
+    // async getRowData () {
+    //   await api.get('/api/v1/statistics/raw')
+    //       .then(function (response) {
+    //         // handle success
+    //         console.log(response);
+    //       })
+    //       .catch(function (error) {
+    //         // handle error
+    //         console.log(error);
+    //       })
+    //       .finally(function () {
+    //         // always executed
+    //       });
+    // },
     fmt (n) { return new Intl.NumberFormat('pl-PL').format(Math.round(n)) }
   }
 }
