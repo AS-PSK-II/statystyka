@@ -76,8 +76,12 @@ export default {
   },
   methods: {
     downloadPng () {
-      const chart = this.$refs.chartRef?.chart
+      const chartComponent = this.$refs.chartRef
+      const chartInstanceRef = chartComponent?.chartInstance
+      const chart = chartInstanceRef?.value || chartInstanceRef
+
       if (!chart) return
+
       const url = chart.toBase64Image()
       const a = document.createElement('a')
       a.href = url

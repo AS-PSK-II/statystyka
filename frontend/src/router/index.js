@@ -1,11 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import ChartsView from "../views/ChartsView.vue";
+import MainView from "@/views/MainView.vue";
 // import ChernoffFacesView from '@/views/ChernoffFacesView.vue'
 
 
 const routes = [
-    { path: '/', redirect: '/charts' },
-    { path: '/charts', name: 'Charts', component: ChartsView },
+    // { path: '/', redirect: '/charts' },
+    { path: '/', name: 'home', component: MainView },
     // { path: '/faces', name: 'Faces', component: ChernoffFacesView }
 ]
 

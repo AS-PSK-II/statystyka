@@ -10,7 +10,7 @@
     </v-app-bar>
 
     <v-main class="bg">
-      <v-container class="py-8">
+      <v-container>
         <router-view />
       </v-container>
     </v-main>

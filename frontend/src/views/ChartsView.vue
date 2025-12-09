@@ -1,7 +1,6 @@
 <template>
   <v-container>
 
-    <CsvUploader @uploaded="loadSample" @clearView="clearView"/>
 
     <v-row class="mb-6 mt-3" v-if="kpis.length">
       <v-col cols="12" md="4" v-for="(k, i) in kpis" :key="i">
@@ -47,61 +46,50 @@
         />
       </v-col>
 
-      <v-col cols="12" md="6">
-        <ChartCard :title="'Top lotniska (ostatni kwartał)'" type="bar" :chartData="topChart" />
-      </v-col>
+<!--      <v-col cols="12" md="6">-->
+<!--        <ChartCard :title="'Top lotniska (ostatni kwartał)'" type="bar" :chartData="topChart" />-->
+<!--      </v-col>-->
 
-      <v-col cols="12" md="6">
-        <ChartCard :title="'Udział (%) – ostatni kwartał'" type="doughnut" :chartData="shareChart" />
-      </v-col>
+<!--      <v-col cols="12" md="6">-->
+<!--        <ChartCard :title="'Udział (%) – ostatni kwartał'" type="doughnut" :chartData="shareChart" />-->
+<!--      </v-col>-->
     </v-row>
 
     <v-alert v-else type="info" variant="tonal" class="mt-6">
-      Załaduj plik CSV aby wyświetlić widok z danymi
+      Załaduj plik Excel aby wyświetlić widok z danymi
     </v-alert>
   </v-container>
 </template>
 
 <script>
-import CsvUploader from '@/components/CsvUploader.vue'
 import ChartCard from '@/components/ChartCard.vue'
-import api from "@/utils/api.js";
+import {getSample} from "@/utils/sample.js"
 
-const SAMPLE = [
-  {
-    timestamp: 'IV kwartał 2022',
-    dataPoints: [
-      { id: 'Chopina w Warszawie', value: 4898107.0 },
-      { id: 'Kraków Balice', value: 2236123.0 },
-      { id: 'Gdańsk im. L. Wałęsy', value: 1588483.0 },
-      { id: 'Katowice - Pyrzowice', value: 1886490.0 },
-      { id: 'Wrocław - Strachowice', value: 1066189.0 }
-    ]
-  },
-  {
-    timestamp: 'III kwartał 2022',
-    dataPoints: [
-      { id: 'Chopina w Warszawie', value: 4898107.0 },
-      { id: 'Kraków Balice', value: 2236123.0 },
-      { id: 'Gdańsk im. L. Wałęsy', value: 1588483.0 },
-      { id: 'Katowice - Pyrzowice', value: 1886490.0 },
-      { id: 'Wrocław - Strachowice', value: 1066189.0 }
-    ]
-  }
-]
 
 export default {
   name: 'ChartsView',
-  components: { CsvUploader, ChartCard },
+  components: { ChartCard },
   data () {
     return {
       series: [],
       airports: [],
       activeAirports: [],
+      sampleData: getSample(),
       chartKind: 'line',
       refreshChartKey: 0,
       palette: ['#6366F1','#22C1C3','#EF4444','#F59E0B','#10B981','#8B5CF6','#3B82F6','#EC4899','#14B8A6','#84CC16']
     }
+  },
+  props: {
+    chartData: {
+      type: Array,
+      required: true
+    }
+  },
+  created () {
+    this.series = JSON.parse(JSON.stringify(this.chartData));
+    this.airports = Array.from(new Set(this.chartData.flatMap(s => s.dataPoints.map(d => d.id))))
+    this.activeAirports = this.airports.slice(0, 5)
   },
   computed: {
     kpis () {
@@ -158,34 +146,22 @@ export default {
         this.refreshChartKey++
       },
       deep: true
+    },
+    chartData: {
+      handler: function(newValue) {
+        this.series = JSON.parse(JSON.stringify(this.chartData))
+        this.airports = Array.from(new Set(this.chartData.flatMap(s => s.dataPoints.map(d => d.id))))
+        this.activeAirports = this.airports.slice(0, 5)
+      },
+      deep: true
     }
   },
   methods: {
-    loadSample () {
-      // „na sztywno”
-      this.series = JSON.parse(JSON.stringify(SAMPLE))
-      this.airports = Array.from(new Set(SAMPLE.flatMap(s => s.dataPoints.map(d => d.id))))
-      this.activeAirports = this.airports.slice(0, 3)
-    },
     clearView () {
       this.series = []
       this.airports = []
       this.activeAirports = []
     },
-    // async getRowData () {
-    //   await api.get('/api/v1/statistics/raw')
-    //       .then(function (response) {
-    //         // handle success
-    //         console.log(response);
-    //       })
-    //       .catch(function (error) {
-    //         // handle error
-    //         console.log(error);
-    //       })
-    //       .finally(function () {
-    //         // always executed
-    //       });
-    // },
     fmt (n) { return new Intl.NumberFormat('pl-PL').format(Math.round(n)) }
   }
 }
