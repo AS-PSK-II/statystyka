@@ -6,7 +6,6 @@
         GBS Flights Analyzer
       </v-app-bar-title>
       <v-spacer />
-      <v-btn to="/charts" variant="text" rounded="lg">Wykresy</v-btn>
     </v-app-bar>
 
     <v-main class="bg">

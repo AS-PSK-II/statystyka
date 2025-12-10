@@ -4,7 +4,8 @@
       <v-tab>Ładowanie danych</v-tab>
       <v-tab v-if="dataLoaded">Wykresy</v-tab>
       <v-tab v-if="dataLoaded">Statystyki</v-tab>
-      <v-tab v-if="dataLoaded">Twarze Charnoffa</v-tab>
+      <v-tab v-if="dataLoaded">Prognoza</v-tab>
+      <v-tab v-if="dataLoaded">Twarze Chernoffa</v-tab>
     </v-tabs>
     <v-tabs-window v-model="tabIndex">
       <v-tabs-window-item>
@@ -16,13 +17,24 @@
               :items="items"
           >
           </v-data-table>
+          <v-card-actions class="float-right" @click="refreshViews++; tabIndex = 1">
+            <v-btn block density="compact" color="primary" v-if="dataLoaded">
+              Przejdź dalej
+            </v-btn>
+          </v-card-actions>
         </v-card-text>
       </v-tabs-window-item>
       <v-tabs-window-item v-if="dataLoaded">
         <charts-view :key="refreshViews" :chart-data="fullData.rowData"></charts-view>
       </v-tabs-window-item>
       <v-tabs-window-item v-if="dataLoaded">
-        <statistics-view :key="refreshViews" :statistics-data="fullData.statisticsData"></statistics-view>
+        <statistics-view :key="refreshViews" :statistics-data="fullData.statisticsData" :airport-options="airportOptions"></statistics-view>
+      </v-tabs-window-item>
+      <v-tabs-window-item v-if="dataLoaded">
+        <forecast-view :key="refreshViews" :chart-data="fullData.rowData"></forecast-view>
+      </v-tabs-window-item>
+      <v-tabs-window-item v-if="dataLoaded">
+        <chernoff-faces-view :key="refreshViews" :chart-data="fullData.rowData"></chernoff-faces-view>
       </v-tabs-window-item>
     </v-tabs-window>
   </div>
@@ -32,11 +44,12 @@
 import ChartsView from "@/views/ChartsView.vue";
 import LoadFileView from "@/views/LoadFileView.vue";
 import StatisticsView from "@/views/StatisticsView.vue";
-
+import ForecastView from "@/views/ForecastView.vue";
+import ChernoffFaceViewsView from "@/views/ChernoffFaceView.vue";
 
 export default {
   name: 'MainView',
-  components: {StatisticsView, LoadFileView, ChartsView},
+  components: {ChernoffFacesView: ChernoffFaceViewsView, ForecastView, StatisticsView, LoadFileView, ChartsView},
   data () {
     return {
       tabIndex: 0,
@@ -47,6 +60,7 @@ export default {
         statisticsData: []
       },
       headers: [],
+      airportOptions: [],
       items: []
     }
   },
@@ -59,7 +73,7 @@ export default {
       this.dataLoaded = true
       this.fullData = Object.assign(fullData)
 
-      this.headers = [{title: 'Kwartał i rok', key: 'date', sortable: false}]
+      this.headers = [{title: 'Kwartał i rok', value: 'date', sortable: false}]
       this.items = []
       for (let i = 0; i < this.fullData.rowData.length; i++) {
 
@@ -70,7 +84,7 @@ export default {
           if (i === 0) {
             this.headers.push({
                   title: this.fullData.rowData[i].dataPoints[j].id,
-                  key: this.fullData.rowData[i].dataPoints[j].id
+                  value: this.fullData.rowData[i].dataPoints[j].id
                 }
             )
           }
@@ -78,6 +92,7 @@ export default {
         }
         this.items.push(item)
       }
+      this.airportOptions = this.headers.slice(1, this.headers.length)
       this.refreshViews++
     }
   }

@@ -22,6 +22,8 @@
               filter
               variant="elevated"
               rounded="lg"
+              class="text-white"
+              style="background: linear-gradient(180deg, rgba(99,102,241,.12), rgba(99,102,241,.06)); border: 1px solid rgba(99,102,241,.25);"
           >
             {{ id }}
           </v-chip>
@@ -30,7 +32,6 @@
         <v-btn-toggle v-model="chartKind" rounded="lg" color="primary" density="comfortable">
           <v-btn value="bar"><v-icon>mdi-chart-bar</v-icon></v-btn>
           <v-btn value="line"><v-icon>mdi-chart-line</v-icon></v-btn>
-          <v-btn value="radar"><v-icon>mdi-radar</v-icon></v-btn>
         </v-btn-toggle>
       </v-col>
     </v-row>
@@ -38,11 +39,12 @@
     <v-row v-if="series.length">
       <v-col cols="12">
         <ChartCard
-            :title="'Trend: kwartalne wartości'"
+            :title="'Kwartalne wartości'"
             :type="chartKind"
             :chartData="timeChart"
             :key="refreshChartKey"
             :options="{ animation: { duration: 700 } }"
+            :on-click="true"
         />
       </v-col>
 
@@ -94,19 +96,19 @@ export default {
   computed: {
     kpis () {
       if (!this.series.length) return []
-      const last = this.series[0]
+      const last = this.series[this.series.length - 1]
       const sum = last.dataPoints.reduce((s, d) => s + d.value, 0)
       const max = last.dataPoints.reduce((m, d) => (d.value > m.value ? d : m), { id: '', value: -1 })
       return [
         { label: 'Łącznie (ostatni kwartał)', value: this.fmt(sum), sub: last.timestamp },
         { label: 'Największy port', value: max.id, sub: this.fmt(max.value) },
-        { label: 'Liczba portów', value: String(last.dataPoints.length), sub: 'aktywne w kwartale' }
+        { label: 'Liczba lotnisk', value: String(last.dataPoints.length), sub: 'aktywne w kwartale' }
       ]
     },
     timeChart () {
       if (!this.series.length) return { labels: [], datasets: [] }
       const labels = this.series.map(s => s.timestamp)
-      const selected = this.activeAirports.length ? this.activeAirports : this.airports
+      const selected = this.activeAirports.length ? this.activeAirports : []
       const datasets = selected.map((id, i) => ({
         label: id,
         data: this.series.map(s => s.dataPoints.find(d => d.id === id)?.value || 0),

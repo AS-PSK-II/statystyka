@@ -54,7 +54,7 @@ export default {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { boxWidth: 14, boxHeight: 14 } },
+          legend: { labels: { boxWidth: 14, boxHeight: 14 }, onClick: null },
           tooltip: {
             mode: 'index', intersect: false,
             callbacks: {
