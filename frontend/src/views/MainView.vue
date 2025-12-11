@@ -1,11 +1,11 @@
 <template>
   <div>
-    <v-tabs v-model="tabIndex">
-      <v-tab>Ładowanie danych</v-tab>
-      <v-tab v-if="dataLoaded">Wykresy</v-tab>
-      <v-tab v-if="dataLoaded">Statystyki</v-tab>
-      <v-tab v-if="dataLoaded">Prognoza</v-tab>
-      <v-tab v-if="dataLoaded">Twarze Chernoffa</v-tab>
+    <v-tabs height="55" v-model="tabIndex" style="border-radius: 10px; margin-left: 10px; margin-right: 15px; background: linear-gradient(180deg, rgba(99,102,241,.12), rgba(99,102,241,.06))">
+      <v-tab :class="{'font-weight-bold': tabIndex === 0}">Ładowanie danych</v-tab>
+      <v-tab :class="{'font-weight-bold': tabIndex === 1}" v-if="dataLoaded">Wykresy</v-tab>
+      <v-tab :class="{'font-weight-bold': tabIndex === 2}" v-if="dataLoaded">Statystyki</v-tab>
+      <v-tab :class="{'font-weight-bold': tabIndex === 3}" v-if="dataLoaded">Prognoza</v-tab>
+      <v-tab :class="{'font-weight-bold': tabIndex === 4}" v-if="dataLoaded">Twarze Chernoffa</v-tab>
     </v-tabs>
     <v-tabs-window v-model="tabIndex">
       <v-tabs-window-item>
