@@ -80,3 +80,26 @@ Odpowiedź: `JSON` o strukturze przedstawionej poniżej
   }
 ]
 ```
+
+
+## Klient
+
+
+Serwer został napisany we frameworku Vue.js oraz biblioteki Vuetify w wersji 3.
+
+### Uruchomienie klienta
+
+Do zainstalowania pakietów klienta wymagany jest zainstalowany Node.js w wersji > 20. Po zainstalowaniu Node.js, należy przejść do katalogu `frontend` i wykonać poniższe komendy:
+
+```bash
+npm install
+```
+
+
+Po zainstalowaniu pakietów, można uruchomić aplikację klienta za pomocą poniższej komendy:
+
+```bash
+npm run dev
+```
+
+Po wykonaniu powyższej komendy, aplikacja klienta zostanie uruchomiona na porcie `3000`.
