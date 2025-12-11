@@ -23,7 +23,7 @@
           <v-slider
               v-model="windowSize"
               :min="2"
-              :max="8"
+              :max="10"
               :step="1"
               thumb-label
           />

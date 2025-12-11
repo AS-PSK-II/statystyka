@@ -14,7 +14,7 @@
               multiple
               chips
               closable-chips
-              prepend-inner-icon="mdi-filter-variant"
+              prepend-inner-icon="mdi-airplane"
           />
         </v-col>
 
@@ -29,26 +29,6 @@
             <v-icon start>mdi-emoticon-happy-outline</v-icon>
             Generuj Twarze
           </v-btn>
-
-          <v-chip
-              v-if="isReady"
-              color="green"
-              text-color="white"
-              class="font-weight-medium"
-              label
-          >
-            <v-icon start>mdi-check-circle</v-icon>
-            Gotowe do analizy
-          </v-chip>
-          <v-chip
-              v-else
-              color="orange"
-              text-color="black"
-              label
-          >
-            <v-icon start>mdi-alert</v-icon>
-            Wybierz 2–5 atrybutów
-          </v-chip>
         </v-col>
       </v-row>
 
@@ -56,6 +36,40 @@
         Każde lotnisko steruje innym elementem twarzy (np. wielkością oczu,
         krzywizną ust, brwiami). Wyższe wartości &rarr; silniejsze „emocje”.
       </v-alert>
+    </v-card>
+
+    <!-- LEGENDA ATRYBUTÓW -->
+    <v-card
+        v-if="faces.length && selectedAttrs.length"
+        class="pa-4 mb-6 legend-card"
+        elevation="0"
+    >
+      <div class="text-subtitle-2 font-weight-medium mb-3">
+        Legenda: atrybut → element twarzy
+      </div>
+
+      <v-row>
+        <v-col
+            cols="12"
+            md="6"
+            v-for="(attr, i) in selectedAttrs"
+            :key="'legend-' + attr"
+            class="d-flex align-center mb-2"
+        >
+          <v-avatar
+              size="22"
+              :style="{ backgroundColor: palette[i % palette.length] }"
+              class="mr-3"
+          ></v-avatar>
+
+          <div>
+            <div class="text-body-2 font-weight-medium">{{ attr }}</div>
+            <div class="text-caption text-medium-emphasis">
+              {{ legendMapping[i] }}
+            </div>
+          </div>
+        </v-col>
+      </v-row>
     </v-card>
 
     <v-row v-if="faces.length">
@@ -135,7 +149,14 @@ export default {
       selectedAttrs: [],
       faces: [],               // parametry twarzy per wiersz
       rowValues: [],           // oryginalne wartości wybranych lotnisk per wiersz
-      palette: ['#6366F1','#22C1C3','#EF4444','#F59E0B','#10B981','#8B5CF6','#EC4899','#14B8A6']
+      palette: ['#6366F1','#22C1C3','#EF4444','#F59E0B','#10B981','#8B5CF6','#EC4899','#14B8A6'],
+      legendMapping: [
+        'Steruje rozmiarem oczu (większa wartość → większe oczy)',
+        'Steruje krzywizną ust (duża wartość → uśmiech, niska → smutek)',
+        'Steruje nachyleniem brwi (niska wartość → brwi ściągnięte / groźne)',
+        'Steruje szerokością twarzy (szersza przy wyższej wartości)',
+        'Steruje długością nosa (większa wartość → dłuższy nos)'
+      ]
     }
   },
   created () {
@@ -167,19 +188,22 @@ export default {
       this.faces = []
       this.rowValues = []
     },
+    sortByTimestamp(data) {
+      const romanMap = { I:1, II:2, III:3, IV:4 };
 
-    sortByTimestamp (data) {
-      const romanMap = { I: 1, II: 2, III: 3, IV: 4 }
       return data.sort((a, b) => {
-        const [rA,, yA] = a.timestamp.split(' ')
-        const [rB,, yB] = b.timestamp.split(' ')
-        const yearA = Number(yA)
-        const yearB = Number(yB)
-        const qA = romanMap[rA] || 0
-        const qB = romanMap[rB] || 0
-        if (yearA !== yearB) return yearA - yearB
-        return qA - qB
-      })
+        const [rA, _, yA] = a.timestamp.split(" ");
+        const [rB, __, yB] = b.timestamp.split(" ");
+
+        const yearA = Number(yA);
+        const yearB = Number(yB);
+
+        const qA = romanMap[rA] || 0;
+        const qB = romanMap[rB] || 0;
+
+        if (yearA !== yearB) return yearA - yearB;
+        return qA - qB;
+      });
     },
 
     generateFaces () {
@@ -252,5 +276,10 @@ export default {
   border-radius: 18px;
   background: linear-gradient(180deg, rgba(15,23,42,.9), rgba(15,23,42,.97));
   border: 1px solid rgba(30,64,175,.5);
+}
+.legend-card {
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(30,41,59,.9), rgba(15,23,42,.95));
+  border: 1px solid rgba(148,163,184,.25);
 }
 </style>
