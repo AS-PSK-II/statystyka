@@ -27,7 +27,9 @@ export default {
     title: { type: String, default: '' },
     type:  { type: String, default: 'bar' }, // 'bar' | 'line' | 'pie' | 'doughnut' | 'radar'
     chartData: { type: Object, required: true },
-    options:   { type: Object, default: () => ({}) }
+    options:   { type: Object, default: () => ({}) },
+    xLabel: { type: String, default: '' },
+    yLabel: { type: String, default: '' }
   },
   computed: {
     componentType () {
@@ -67,8 +69,33 @@ export default {
           }
         },
         scales: (this.type === 'pie' || this.type === 'doughnut') ? {} : {
-          x: { grid: { display: false } },
-          y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { callback: (v) => nf.format(v) } }
+          x: {
+            grid: { display: false },
+            title: {
+              display: !!this.xLabel,
+              text: this.xLabel,
+              color: '#CBD5E1',
+              font: {
+                size: 13,
+                weight: '500'
+              }
+            }
+          },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.06)' },
+            ticks: {
+              callback: (v) => nf.format(v)
+            },
+            title: {
+              display: !!this.yLabel,
+              text: this.yLabel,
+              color: '#CBD5E1',
+              font: {
+                size: 13,
+                weight: '500'
+              }
+            }
+          }
         },
         ...this.options
       }

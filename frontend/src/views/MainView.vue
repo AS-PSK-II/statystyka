@@ -34,7 +34,7 @@
         <forecast-view :key="refreshViews" :chart-data="fullData.rowData"></forecast-view>
       </v-tabs-window-item>
       <v-tabs-window-item v-if="dataLoaded">
-        <chernoff-faces-view :key="refreshViews" :chart-data="fullData.rowData"></chernoff-faces-view>
+        <chernoff-faces-view :key="refreshViews" :chart-data="fullData.rowData" :statistics-data="fullData.statisticsData"></chernoff-faces-view>
       </v-tabs-window-item>
     </v-tabs-window>
   </div>

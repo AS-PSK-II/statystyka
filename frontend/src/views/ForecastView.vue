@@ -67,6 +67,8 @@
         type="line"
         :chartData="forecastChart"
         :options="chartOptions"
+        :x-label="'Czas (kwartały)'"
+        :y-label="'Liczba obsłużonych pasażerów'"
     />
 
     <v-alert v-else type="info" variant="tonal" class="mt-6">

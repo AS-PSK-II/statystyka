@@ -27,7 +27,7 @@
               @click="generateFaces"
           >
             <v-icon start>mdi-emoticon-happy-outline</v-icon>
-            Generuj Twarze
+            Generuj Twarz
           </v-btn>
         </v-col>
       </v-row>
@@ -40,7 +40,7 @@
 
     <!-- LEGENDA ATRYBUTÓW -->
     <v-card
-        v-if="faces.length && selectedAttrs.length"
+        v-if="face && selectedAttrs.length"
         class="pa-4 mb-6 legend-card"
         elevation="0"
     >
@@ -70,48 +70,61 @@
           </div>
         </v-col>
       </v-row>
+      <v-divider class="my-3" />
+
+      <div class="text-caption text-medium-emphasis mb-2">
+        Mapowanie przedziałów kwartylowych na kształty (dla każdego lotniska):
+      </div>
+
+      <div class="d-flex flex-wrap">
+        <v-chip class="mr-2 mb-2" size="small" variant="outlined">
+          0 - Q1 → Kwadrat
+        </v-chip>
+        <v-chip class="mr-2 mb-2" size="small" variant="outlined">
+          Q1 – Q2 → Trójkąt
+        </v-chip>
+        <v-chip class="mr-2 mb-2" size="small" variant="outlined">
+          Q2 – Q3 → Koło
+        </v-chip>
+        <v-chip class="mr-2 mb-2" size="small" variant="outlined">
+          > Q3 → Diament
+        </v-chip>
+      </div>
     </v-card>
 
-    <v-row v-if="faces.length">
-      <v-col
-          v-for="(row, index) in series"
-          :key="index"
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-      >
+    <v-row v-if="face && isReady">
+      <v-col cols="12" md="8" class="mx-auto">
         <v-card class="face-card" elevation="0">
           <div class="pa-3 d-flex justify-space-between align-center">
             <div class="text-subtitle-2 font-weight-medium">
-              Twarz dla {{ row.timestamp }}
+              Twarz Chernoffa
             </div>
-            <v-chip size="x-small" color="primary" variant="flat">
-              #{{ index + 1 }}
-            </v-chip>
           </div>
 
           <div class="d-flex justify-center pb-2">
-            <ChernoffFace :params="faces[index]" :size="160" />
+            <ChernoffFace :params="face" :size="220" />
           </div>
 
           <v-divider />
 
           <div class="pa-3">
-            <div class="text-caption text-medium-emphasis mb-2">
-              Rozkład atrybutów:
-            </div>
-            <div class="d-flex flex-wrap gap-1">
+
+            <div class="d-flex flex-wrap">
               <v-chip
-                  v-for="(attr, i) in selectedAttrs"
-                  :key="attr"
-                  size="x-small"
+                  v-for="(item, i) in summaryRows"
+                  :key="item.attr"
+                  size="small"
                   :color="palette[i % palette.length]"
                   variant="outlined"
-                  class="mr-1 mb-1"
+                  class="mr-2 mb-2"
               >
-                {{ shortName(attr) }}:
-                {{ fmt(rowValues[index][attr]) }}
+                {{ shortName(item.attr) }}
+                • Średnia={{ fmt(item.mean) }}
+                • Q1={{ fmt(item.q1) }}
+                • Q2={{ fmt(item.q2) }}
+                • Q3={{ fmt(item.q3) }}
+                • poziom: {{ item.bucketLabel }}
+                • kształt: {{ shapeLabel(item.shape) }}
               </v-chip>
             </div>
           </div>
@@ -125,7 +138,7 @@
         variant="tonal"
         class="mt-6"
     >
-      Wybierz 2–5 lotnisk i kliknij „Generuj Twarze”, aby zobaczyć wizualizację.
+      Wybierz 2–5 lotnisk i kliknij „Generuj Twarz”, aby zobaczyć wizualizację.
     </v-alert>
   </v-container>
 </template>
@@ -140,6 +153,10 @@ export default {
     chartData: {
       type: Array,
       required: true
+    },
+    statisticsData: {
+      type: Array,
+      required: true
     }
   },
   data () {
@@ -147,15 +164,16 @@ export default {
       series: [],
       airports: [],
       selectedAttrs: [],
-      faces: [],               // parametry twarzy per wiersz
+      face: null,        // jedna twarz
+      summaryRows: [],   // tabelka z mean/Q1/Q2/Q3/bucket
       rowValues: [],           // oryginalne wartości wybranych lotnisk per wiersz
       palette: ['#6366F1','#22C1C3','#EF4444','#F59E0B','#10B981','#8B5CF6','#EC4899','#14B8A6'],
       legendMapping: [
-        'Steruje rozmiarem oczu (większa wartość → większe oczy)',
+        'Steruje kształem oczu',
         'Steruje krzywizną ust (duża wartość → uśmiech, niska → smutek)',
-        'Steruje nachyleniem brwi (niska wartość → brwi ściągnięte / groźne)',
-        'Steruje szerokością twarzy (szersza przy wyższej wartości)',
-        'Steruje długością nosa (większa wartość → dłuższy nos)'
+        'Steruje nachyleniem i kształtem brwi (niska wartość → brwi ściągnięte / groźne)',
+        'Steruje kształtem uszu',
+        'Steruje kształtem nosa'
       ]
     }
   },
@@ -177,15 +195,23 @@ export default {
     }
   },
   methods: {
+    bucketToShape(lvl) {
+      // 0=kwadrat, 1=trójkąt, 2=koło, 3=diament
+      return lvl
+    },
+    shapeLabel(shape) {
+      return ['Kwadrat', 'Trójkąt', 'Koło', 'Diament'][shape] || ''
+    },
     initFromData () {
       // kopia i sortowanie rosnące po czasie
+      this.face = null
+      this.summaryRows = []
       const clone = JSON.parse(JSON.stringify(this.chartData || []))
       this.series = this.sortByTimestamp(clone)
       this.airports = Array.from(
           new Set(this.series.flatMap(s => s.dataPoints.map(d => d.id)))
       )
       this.selectedAttrs = this.airports.slice(0, 3) // domyślnie 3 pierwsze
-      this.faces = []
       this.rowValues = []
     },
     sortByTimestamp(data) {
@@ -205,49 +231,91 @@ export default {
         return qA - qB;
       });
     },
-
+    getStat(item, key) {
+      const found = item?.values?.find(v => v.name === key)
+      return found?.value ?? null
+    },
     generateFaces () {
-      if (!this.isReady || !this.series.length) {
-        this.faces = []
+      if (!this.isReady) {
+        this.face = null
+        this.summaryRows = []
         return
       }
 
-      // zbieramy wartości: per wiersz -> { airportId: value }
-      const rowValues = this.series.map(row => {
-        const map = {}
-        row.dataPoints.forEach(dp => { map[dp.id] = dp.value })
-        return map
-      })
-      this.rowValues = rowValues
+      // bierzemy tylko te lotniska, które user wybrał
+      const selected = this.selectedAttrs
+          .map(id => this.statisticsData.find(x => x.id === id))
+          .filter(Boolean)
 
-      // normalizacja per lotnisko
-      const normalized = {}
-      this.selectedAttrs.forEach(attr => {
-        const vals = rowValues.map(r => Number(r[attr] || 0))
-        const min = Math.min(...vals)
-        const max = Math.max(...vals)
-        const span = max - min || 1
-        normalized[attr] = vals.map(v => (v - min) / span)
-      })
+      if (!selected.length) {
+        this.face = null
+        this.summaryRows = []
+        return
+      }
 
-      // mapowanie atrybutów -> cechy twarzy
-      const faces = this.series.map((_, rowIdx) => {
-        const vals = this.selectedAttrs.map(a => normalized[a][rowIdx])
+      const bucketLevel = (avg, q1, q2, q3) => {
+        if (avg == null || q1 == null || q2 == null || q3 == null) return 1 // fallback
+        if (avg <= q1) return 0
+        if (avg <= q2) return 1
+        if (avg <= q3) return 2
+        return 3
+      }
 
-        const [v0 = 0.5, v1 = 0.5, v2 = 0.5, v3 = 0.5, v4 = 0.5] = vals
+      const bucketLabel = (lvl) => (['≤Q1', 'Q1–Q2', 'Q2–Q3', '>Q3'][lvl] || '')
+
+      // 0..1 z kwartylowego bucketu
+      const stats = selected.map(item => {
+        const avg = this.getStat(item, 'avg')
+        const q1  = this.getStat(item, 'firstQuantile')
+        const q2  = this.getStat(item, 'median')          // Q2
+        const q3  = this.getStat(item, 'thirdQuantile')   // Q3
+
+        const lvl = bucketLevel(avg, q1, q2, q3)          // 0..3
+        const norm = lvl / 3                               // 0..1
 
         return {
-          eyeSize: v0,          // atrybut 1 -> wielkość oczu
-          eyeSep: 0.5,          // stałe, żeby nie przesadzić
-          browTilt: v2,         // atrybut 3 -> „gniew” / „smutek”
-          mouthCurve: v1,       // atrybut 2 -> uśmiech / smutek
-          faceW: v3,            // atrybut 4 -> szerokość twarzy
-          faceH: 0.5,
-          noseLen: v4 || 0.5    // atrybut 5 -> długość nosa
+          attr: item.id,
+          avg, q1, q2, q3,
+          lvl,
+          norm,
+          bucketLabel: bucketLabel(lvl)
         }
       })
 
-      this.faces = faces
+      // do podglądu w chipach
+      this.summaryRows = stats.map(s => ({
+        attr: s.attr,
+        mean: s.avg,
+        q1: s.q1,
+        q2: s.q2,
+        q3: s.q3,
+        bucketLabel: s.bucketLabel,
+        shape: this.bucketToShape(s.lvl)
+      }))
+
+      // mapowanie 2–5 atrybutów -> cechy twarzy
+      const vals = stats.map(s => s.norm)
+      const lvls = stats.map(s => s.lvl)
+
+      const [v0=0.5,v1=0.5,v2=0.5,v3=0.5,v4=0.5] = vals
+      const [l0=2,l1=2,l2=2,l3=2,l4=2] = lvls
+
+      this.face = {
+        eyeSize: v0,
+        eyeSep: 0.5,
+        mouthCurve: v1,
+        browTilt: v2,
+        noseLen: v4,
+
+        // USZY zamiast kształtu/proporcji głowy
+        earSize: v3,                         // 0..1 (z bucketu)
+        earShape: this.bucketToShape(l3),     // 0..3
+
+        eyeShape: this.bucketToShape(l0),
+        mouthShape: this.bucketToShape(l1),
+        browShape: this.bucketToShape(l2),
+        noseShape: this.bucketToShape(l4)
+      }
     },
 
     shortName (name) {

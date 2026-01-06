@@ -45,6 +45,8 @@
             :key="refreshChartKey"
             :options="{ animation: { duration: 700 } }"
             :on-click="true"
+            :x-label="'Czas (kwartały)'"
+            :y-label="'Liczba obsłużonych pasażerów'"
         />
       </v-col>
 

@@ -14,9 +14,13 @@ export default {
         eyeSep: 0.5,
         browTilt: 0.5,
         mouthCurve: 0.5,
-        faceW: 0.5,
-        faceH: 0.5,
-        noseLen: 0.5
+        noseLen: 0.5,
+        earSize: 0.5,
+        earShape: 1,
+        eyeShape: 2,
+        browShape: 2,
+        noseShape: 2,
+        mouthShape: 2
       })
     },
     size: {
@@ -40,6 +44,27 @@ export default {
     }
   },
   methods: {
+    drawShape(ctx, shape, x, y, size) {
+      // shape: 0=kwadrat, 1=trójkąt, 2=koło, 3=diament
+      ctx.beginPath()
+      if (shape === 0) { // square
+        ctx.rect(x - size, y - size, size * 2, size * 2)
+      } else if (shape === 1) { // triangle
+        ctx.moveTo(x, y - size)
+        ctx.lineTo(x + size, y + size)
+        ctx.lineTo(x - size, y + size)
+        ctx.closePath()
+      } else if (shape === 2) { // circle
+        ctx.arc(x, y, size, 0, Math.PI * 2)
+      } else { // diamond
+        ctx.moveTo(x, y - size)
+        ctx.lineTo(x + size, y)
+        ctx.lineTo(x, y + size)
+        ctx.lineTo(x - size, y)
+        ctx.closePath()
+      }
+      ctx.stroke()
+    },
     draw () {
       const c = this.$refs.canvas
       if (!c) return
@@ -52,8 +77,8 @@ export default {
 
       const p = this.params
 
-      const faceW = 0.6 + p.faceW * 0.4
-      const faceH = 0.6 + p.faceH * 0.4
+      const faceW = 0.80
+      const faceH = 0.78
 
       // głowa
       ctx.beginPath()
@@ -68,22 +93,28 @@ export default {
       )
       ctx.stroke()
 
+      // USZY (rozmiar + kształt)
+      const ear = 6 + (p.earSize ?? 0.5) * 10 // 6..16
+      const earY = s * 0.52
+
+      // pozycje uszu przy krawędzi głowy
+      const leftEarX  = s * 0.16
+      const rightEarX = s * 0.84
+
+      this.drawShape(ctx, p.earShape ?? 2, leftEarX, earY, ear)
+      this.drawShape(ctx, p.earShape ?? 2, rightEarX, earY, ear)
+
       // oczy
       const eyeSize = 3 + p.eyeSize * 10
       const sep = 15 + p.eyeSep * 25
       const eyeY = s * 0.45
       const eyeX = s / 2
 
-      ctx.beginPath()
-      ctx.arc(eyeX - sep, eyeY, eyeSize, 0, Math.PI * 2)
-      ctx.stroke()
-
-      ctx.beginPath()
-      ctx.arc(eyeX + sep, eyeY, eyeSize, 0, Math.PI * 2)
-      ctx.stroke()
+      this.drawShape(ctx, p.eyeShape, eyeX - sep, eyeY, eyeSize)
+      this.drawShape(ctx, p.eyeShape, eyeX + sep, eyeY, eyeSize)
 
       // brwi
-      const tilt = (p.browTilt - 0.5) * 1.1 // -0.55..+0.55
+      const tilt = (p.browTilt - 0.5) * 1.1
       const browY = eyeY - eyeSize - 6
 
       ctx.beginPath()
@@ -96,28 +127,27 @@ export default {
       ctx.lineTo(eyeX + sep + eyeSize, browY + tilt * 8)
       ctx.stroke()
 
-      // nos
-      const nose = 6 + p.noseLen * 22
-      ctx.beginPath()
-      ctx.moveTo(eyeX, eyeY)
-      ctx.lineTo(eyeX - 4, eyeY + nose * 0.4)
-      ctx.lineTo(eyeX, eyeY + nose)
-      ctx.stroke()
+      this.drawShape(ctx, p.browShape, eyeX - sep, browY - 10, 5)
+      this.drawShape(ctx, p.browShape, eyeX + sep, browY - 10, 5)
 
-      // usta
-      const mouthCurve = (p.mouthCurve - 0.5) * 1.4 // -0.7..+0.7
+      // nos (kształt + długość)
+      const nose = 6 + p.noseLen * 22
+      const nx = eyeX
+      const ny = eyeY + nose * 0.75
+      this.drawShape(ctx, p.noseShape, nx, ny, 6)
+
+    // usta
+      const mouthCurve = (p.mouthCurve - 0.5) * 1.4
       const mw = s * 0.2
       const my = s * 0.68
 
       ctx.beginPath()
       ctx.moveTo(eyeX - mw, my)
-      ctx.quadraticCurveTo(
-          eyeX,
-          my + mouthCurve * 30,
-          eyeX + mw,
-          my
-      )
+      ctx.quadraticCurveTo(eyeX, my + mouthCurve * 30, eyeX + mw, my)
       ctx.stroke()
+
+      // znacznik kształtu ust (czytelny bucket)
+      this.drawShape(ctx, p.mouthShape, eyeX, my + 12, 6)
     }
   }
 }
